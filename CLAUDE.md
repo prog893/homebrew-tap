@@ -1,9 +1,16 @@
 # homebrew-tap Development Guide
 
+> **⚠️ Private Repository Notice**
+>
+> This tap repository is **private** as of 2025-03-19 with no current plans to become public.
+>
+> Users must authenticate with GitHub before tapping — see README.md for setup instructions.
+>
+> **Developer setup:** You need SSH key access for pushing formula updates during releases.
+
 This repo is the single Homebrew tap for all `prog893` CLI tools.
 Users: `brew tap prog893/tap` → `brew install <tool-name>`
 
----
 
 ## Onboarding a New Tool
 
