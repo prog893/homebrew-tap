@@ -5,7 +5,7 @@ class BedrockBridge < Formula
   homepage "https://github.com/prog893/bedrock-bridge"
   url "https://github.com/prog893/bedrock-bridge.git",
       tag:      "v0.1.1",
-      revision: ""
+      revision: "2005d1d157cd9cf771862a4e15caa0f2dfecdc36"
   version "0.1.1"
   license "MIT"
 
