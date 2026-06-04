@@ -4,9 +4,9 @@ class BedrockBridge < Formula
   desc "Local proxy: Anthropic Messages API to Amazon Bedrock Converse API"
   homepage "https://github.com/prog893/bedrock-bridge"
   url "https://github.com/prog893/bedrock-bridge.git",
-      tag:      "v0.1.1",
-      revision: "2005d1d157cd9cf771862a4e15caa0f2dfecdc36"
-  version "0.1.1"
+      tag:      "v0.1.2",
+      revision: "5534277c7434bd1e1252dc47600bd8ed63bb0bf7"
+  version "0.1.2"
   license "MIT"
 
   depends_on "python@3.13"
@@ -85,7 +85,7 @@ class BedrockBridge < Formula
       bedrock-bridge needs:
         - AWS credentials (`aws configure sso`, env vars, or a profile)
         - IAM permissions to invoke the Bedrock models you want to use
-          (see https://github.com/prog893/bedrock-bridge/blob/main/IAM.md)
+          (see https://github.com/prog893/bedrock-bridge/blob/main/docs/iam.md)
         - For `--claude` mode: the `claude` CLI (`brew install claude-code`)
     EOS
   end
