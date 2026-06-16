@@ -11,9 +11,10 @@ brew install prog893/tap/staqan-yt
 
 ## Tools
 
-| Formula   | Description                             |
-|-----------|-----------------------------------------|
-| staqan-yt | YouTube metadata CLI (YouTube Data API) |
+| Formula        | Description                                                  |
+|----------------|--------------------------------------------------------------|
+| bedrock-bridge | Local proxy: Anthropic Messages API to Amazon Bedrock Converse API |
+| staqan-yt      | YouTube metadata CLI (YouTube Data API)                      |
 
 ## Usage
 
