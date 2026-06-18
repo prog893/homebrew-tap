@@ -3,7 +3,7 @@ class Materialize < Formula
   homepage "https://github.com/prog893/materialize"
   url "https://github.com/prog893/materialize.git",
       tag: "v1.0.0",
-      revision: "7011248c7f8ec8e7e4e7e7e7e7e7e7e7e7e7e7e7"
+      revision: "701124811f353f0ea8d1dc98e9b48403a6e8f443"
   license "MIT"
 
   depends_on xcode: ["15.0", :build]
