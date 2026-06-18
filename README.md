@@ -15,6 +15,7 @@ brew install prog893/tap/staqan-yt
 |----------------|--------------------------------------------------------------|
 | bedrock-bridge | Local proxy: Anthropic Messages API to Amazon Bedrock Converse API |
 | staqan-yt      | YouTube metadata CLI (YouTube Data API)                      |
+| materialize    | Force-download cloud-only files via NSFileCoordinator        |
 
 ## Usage
 
