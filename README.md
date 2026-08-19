@@ -17,6 +17,7 @@ brew install prog893/tap/staqan-yt
 | staqan-yt      | YouTube metadata CLI (YouTube Data API)                      |
 | materialize    | Force-download cloud-only files via NSFileCoordinator        |
 | mlx-asr        | Batch speech-to-text on Apple Silicon (Voxtral, Whisper, kotoba-whisper) |
+| utfcopy        | pbcopy/pbpaste replacement that works with emoji and CJK without locale tweaks |
 
 ## Usage
 
