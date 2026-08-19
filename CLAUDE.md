@@ -1,12 +1,7 @@
 # homebrew-tap Development Guide
 
-> **⚠️ Private Repository Notice**
->
-> This tap repository is **private** as of 2025-03-19 with no current plans to become public.
->
-> Users must authenticate with GitHub before tapping — see README.md for setup instructions.
->
-> **Developer setup:** You need SSH key access for pushing formula updates during releases.
+> This tap is public, so `brew tap prog893/tap` needs no authentication.
+> Pushing formula updates needs SSH key access.
 
 This repo is the single Homebrew tap for all `prog893` CLI tools.
 Users: `brew tap prog893/tap` → `brew install <tool-name>`
@@ -216,7 +211,7 @@ Human review not required for version-only commits.
 - One `.rb` per tool in `Formula/`, named `<tool-name>.rb`
 - Formula class: PascalCase (`StaqanYt` for `staqan-yt`)
 - Required fields: `desc`, `homepage`, `version`, `url`, `license`, `install`, `test`
-- Source-based installs (git tag URL) preferred for private repos
+- Source-based installs (git tag URL) preferred, since the tap publishes no bottles
 
 ---
 
