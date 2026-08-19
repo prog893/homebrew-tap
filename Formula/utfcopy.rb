@@ -25,14 +25,12 @@ class Utfcopy < Formula
     # "sandbox-exec: sandbox_apply: Operation not permitted", reported as
     # "Invalid manifest". Homebrew's sandbox still applies to the build.
     system "swift", "build", "-c", "release", "--disable-sandbox"
-    bin.install ".build/release/utfcopy"
 
-    # SwiftPM builds one executable, but the tool is two commands: it picks copy
-    # or paste mode from argv[0], so utfpaste has to be created here or half the
-    # package is missing. install_symlink is used rather than ln_s because
-    # Homebrew guarantees it produces a relative link, which survives the move
-    # from the Cellar to the opt prefix.
-    bin.install_symlink "utfcopy" => "utfpaste"
+    # Two executable targets from one source file: utfpaste is the same code
+    # compiled with -D PASTE_MODE. They are separate binaries rather than a
+    # symlink pair, so neither depends on argv[0] and renaming one cannot change
+    # what it does.
+    bin.install ".build/release/utfcopy", ".build/release/utfpaste"
   end
 
   test do
