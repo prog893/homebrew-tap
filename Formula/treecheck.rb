@@ -28,7 +28,9 @@ class Treecheck < Formula
     (testpath/"good.txt.sha256").write "#{Digest::SHA256.hexdigest("intact")}\n"
     assert_match "Verified:        1", shell_output("#{bin}/treecheck #{testpath}")
 
-    (testpath/"good.txt").write "changed"
+    # File.write rather than Pathname#write: Homebrew's Pathname refuses to
+    # overwrite an existing file, and corrupting this one in place is the point.
+    File.write(testpath/"good.txt", "changed")
     output = shell_output("#{bin}/treecheck #{testpath}", 1)
     assert_match "hash mismatch", output
     assert_match "Mismatched:      1", output
