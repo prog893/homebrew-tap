@@ -1,14 +1,14 @@
 class MlxAsr < Formula
   include Language::Python::Virtualenv
 
-  desc "Batch speech-to-text on Apple Silicon: Voxtral, Whisper, kotoba-whisper"
+  desc "Batch speech-to-text on Apple Silicon: Voxtral, Whisper, kotoba, Qwen3-ASR"
   homepage "https://github.com/prog893/mlx-asr"
   # No `version` line: Homebrew scans it from the tag, and declaring both is
   # flagged as redundant. Note the tag must be written out rather than
   # interpolated as "v#{version}", since style autocorrect sorts `url` above
   # `version`, at which point the interpolation resolves to a bare "v" and the
   # clone fails with "Remote branch v not found in upstream origin".
-  url "https://github.com/prog893/mlx-asr.git", tag: "v0.1.0"
+  url "https://github.com/prog893/mlx-asr.git", tag: "v0.2.0"
   license "MIT"
 
   # A git URL with a tag rather than a release tarball, matching the other
@@ -39,7 +39,7 @@ class MlxAsr < Formula
   # Wheels, not sdists, which is why this is a tap and not homebrew-core:
   # `mlx` and `mlx-metal` publish no sdist at all, and numba/llvmlite/tokenizers
   # would each need a full LLVM or Rust toolchain to build from source.
-  # Regenerate with: uv run python packaging/gen_formula.py
+  # Regenerate with: uv run python scripts/homebrew/gen_formula.py
   resource "annotated-doc" do
     url "https://files.pythonhosted.org/packages/3e/30/e900b21425a860e195f32e37657aa1f7c7f2b1bfb26f03ca209b90933c06/annotated_doc-0.0.5-py3-none-any.whl"
     sha256 "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
@@ -143,6 +143,11 @@ class MlxAsr < Formula
   resource "jsonschema-specifications" do
     url "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl"
     sha256 "98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe"
+  end
+
+  resource "langcodes" do
+    url "https://files.pythonhosted.org/packages/dd/c1/d10b371bcba7abce05e2b33910e39c33cfa496a53f13640b7b8e10bb4d2b/langcodes-3.5.1-py3-none-any.whl"
+    sha256 "b6a9c25c603804e2d169165091d0cdb23934610524a21d226e4f463e8e958a72"
   end
 
   resource "llvmlite" do
@@ -445,6 +450,16 @@ class MlxAsr < Formula
     # downloading any weights, which a sandboxed `brew test` cannot do.
     assert_match "voxtral", shell_output("#{bin}/mlx-asr --list-models")
     assert_match "kotoba", shell_output("#{bin}/mlx-asr --list-models")
+    assert_match "qwen3-asr", shell_output("#{bin}/mlx-asr --list-models")
+
+    # An engine that cannot honour a flag or a format must exit 2 rather than
+    # produce output the user reads as having been made with it. Both checks run
+    # without weights, so they belong in a sandboxed test: the format refusal is
+    # decided before anything is loaded.
+    assert_match "no speech-level timestamps",
+                 shell_output("#{bin}/mlx-asr x.wav --model qwen3-asr -f srt 2>&1", 2)
+    assert_match "not supported by --model whisper-turbo",
+                 shell_output("#{bin}/mlx-asr x.wav --model whisper-turbo --vad 2>&1", 2)
 
     # A real transcription needs weights, so instead prove the engine imports
     # and that Metal is reachable, which is the part most likely to break.
@@ -455,6 +470,11 @@ class MlxAsr < Formula
       assert mx.sum(mx.ones((4, 4))).item() == 16.0
       assert machine_info()["chip"]
       assert "voxtral" in REGISTRY
+      # The qwen3 loader lives in mlx-audio's dispatch table rather than here, so
+      # a version bump that dropped it would break the alias at runtime with the
+      # weights already downloaded. Cheap to catch at install time instead.
+      from mlx_audio.stt.utils import MODEL_REMAPPING
+      assert "qwen3_asr" in MODEL_REMAPPING, sorted(MODEL_REMAPPING)
     PYTHON
 
     # And that a synthetic WAV survives decode + SRT writing, model aside.
