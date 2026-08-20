@@ -18,6 +18,7 @@ brew install prog893/tap/staqan-yt
 | materialize    | Force-download cloud-only files via NSFileCoordinator        |
 | mlx-asr        | Batch speech-to-text on Apple Silicon (Voxtral, Whisper, kotoba-whisper) |
 | utfcopy        | pbcopy/pbpaste replacement that works with emoji and CJK without locale tweaks |
+| treecheck      | Verify files against SHA-256 sidecars to catch silent corruption |
 
 ## Usage
 
