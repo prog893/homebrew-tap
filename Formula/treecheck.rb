@@ -6,7 +6,7 @@ class Treecheck < Formula
   # "v#{version}", since style autocorrect sorts `url` above `version`, at which
   # point the interpolation resolves to a bare "v" and the clone fails with
   # "Remote branch v not found in upstream origin".
-  url "https://github.com/prog893/treecheck.git", tag: "v1.0.0"
+  url "https://github.com/prog893/treecheck.git", tag: "v1.1.0"
   license "MIT"
 
   head "https://github.com/prog893/treecheck.git", branch: "main"
