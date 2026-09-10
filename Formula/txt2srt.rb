@@ -19,11 +19,19 @@ class Txt2srt < Formula
   # The default backend is mlx-whisper, so Metal only. macOS 14 is mlx-metal's
   # own floor for its arm64 wheels.
   depends_on arch: :arm64
+  depends_on "ffmpeg"
   depends_on macos: :sonoma
   depends_on "python@3.13"
 
-  # No `depends_on "ffmpeg"`: audio is decoded through av's bundled libav*, in
-  # process. That is also why there is no subprocess anywhere in the decode path.
+  # ffmpeg does the decoding here, and PyAV is deliberately not among the
+  # resources below, though it is a dependency of the project for source
+  # installs. PyAV's wheel bundles ad-hoc signed ffmpeg dylibs in `av/.dylibs`,
+  # and Homebrew rewrites Mach-O install names in everything it installs, which
+  # both breaks those signatures (macOS then kills the process on `import av`
+  # with a bare SIGKILL, exit 137, no traceback) and fails outright on the ones
+  # whose IDs it cannot rewrite, which fails the whole install. txt2srt.audio
+  # falls back to the ffmpeg binary when PyAV is absent, so this build decodes
+  # through the formula instead.
   #
   # No torch either, though mlx-whisper declares it. Nothing this CLI calls
   # touches it: the whisper backend uses find_alignment from mlx_whisper.timing,
@@ -35,11 +43,6 @@ class Txt2srt < Formula
   resource "anyio" do
     url "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
     sha256 "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"
-  end
-
-  resource "av" do
-    url "https://files.pythonhosted.org/packages/3f/c9/37a619297492256b77d5ed906e7d8166c10a26ed251dccf1ae03ab19bff6/av-18.1.0-cp311-abi3-macosx_14_0_arm64.whl"
-    sha256 "b30a4e8d934558e19602b68998a4d9ac9f250fa0dacef216f7e8e40153b13316"
   end
 
   resource "certifi" do
@@ -178,40 +181,40 @@ class Txt2srt < Formula
     url "https://files.pythonhosted.org/packages/f7/ab/ba1952908c5d2a5070cf1cfbfea0161c4751ea62299e2776819810917483/mlx_metal-0.32.2-py3-none-macosx_14_0_arm64.whl"
     sha256 "3825fff379dbc107dd3413e564a06caeaa24819910ec49c0439e454c06a1b9b8"
   end
+  # The wheels are staged during install and unpacked in post_install, and that
+  # split is the whole point of it.
+  #
+  # Homebrew walks the finished keg and rewrites Mach-O install names in every
+  # dylib it finds, which for wheels is both unnecessary (they are built to be
+  # self-contained) and destructive: it invalidates the ad-hoc code signatures
+  # that delocate applied, and macOS then kills the process the moment one of
+  # those dylibs is loaded, with SIGKILL and no message. Where it cannot rewrite
+  # a file it fails outright, and one failure aborts the linkage step for the
+  # whole keg and marks the install as failed. Neither is recoverable from inside
+  # `install`: signing the files first makes the rewriting fail, letting it break
+  # them and re-signing afterwards leaves the failed-install status behind.
+  #
+  # So `install` puts nothing in the keg that Homebrew recognises as Mach-O. The
+  # wheels are zip archives, and the venv holds only scripts and symlinks until
+  # post_install, which runs after the relocation pass, fills it in.
   def install
-    # Wheels only, which Homebrew's own helpers cannot do: `std_pip_args`
-    # hard-codes `--no-binary=:all:`, so `venv.pip_install` would try to compile
-    # mlx, numba and av from source (and mlx publishes no sdist at all). So the
-    # venv is created by Homebrew and then filled by a direct pip call.
     virtualenv_create(libexec, "python3.13")
-    python = formula_opt_bin("python@3.13")/"python3.13"
-    pip = [python, "-m", "pip", "--python=#{libexec}/bin/python", "install",
-           "--no-deps", "--ignore-installed"]
 
-    # One install per resource, from the file Homebrew already downloaded and
-    # checked against the sha256 above, with `--no-index` so pip cannot reach the
-    # network for anything else. A stale resource list then fails loudly instead
-    # of being silently patched up from PyPI.
-    #
-    # The copy is required, not tidiness: Homebrew caches downloads as
-    # `<sha256>--mlx-0.32.2-cp313-...whl`, and pip parses wheel filenames
-    # strictly, rejecting the prefixed name with "Invalid wheel filename (wrong
-    # number of parts)".
-    staging = buildpath/"wheels"
-    staging.mkpath
+    (libexec/"wheels").mkpath
     resources.each do |r|
+      # Homebrew caches downloads as `<sha256>--mlx-0.32.2-cp313-...whl`, and pip
+      # parses wheel filenames strictly, rejecting the prefixed name with
+      # "Invalid wheel filename (wrong number of parts)". So each wheel is staged
+      # back under the name it was published with.
       r.fetch
-      wheel = staging/File.basename(r.url)
-      cp r.cached_download, wheel
-      system(*pip, "--no-index", wheel)
+      cp r.cached_download, libexec/"wheels"/File.basename(r.url)
     end
 
     # The project itself is pure Python, so install it as a plain copy plus
     # hand-written entry points rather than through pip. Building the wheel would
     # need hatchling, which has no Homebrew formula, and `--no-build-isolation`
     # cannot fetch it inside the sandbox.
-    site = libexec/"lib/python3.13/site-packages"
-    site.install "txt2srt"
+    (libexec/"lib/python3.13/site-packages").install "txt2srt"
 
     # The console scripts from [project.scripts], parsed out of pyproject.toml
     # rather than hardcoded, so that renaming or repointing an entry point there
@@ -232,6 +235,22 @@ class Txt2srt < Formula
       chmod 0755, libexec/"bin"/script
       bin.install_symlink libexec/"bin"/script
     end
+  end
+
+  # Wheels only, which Homebrew's own helpers cannot do: `std_pip_args`
+  # hard-codes `--no-binary=:all:`, so `venv.pip_install` would try to compile
+  # mlx and numba from source, and mlx publishes no sdist at all. `--no-index`
+  # forbids pip from reaching the network, so a stale resource list fails loudly
+  # instead of being silently patched up from PyPI.
+  # `post_install` rather than `post_install_steps`, which `brew style` asks for:
+  # the declarative form can copy and mkdir, it cannot run pip.
+  def post_install
+    python = formula_opt_bin("python@3.13")/"python3.13"
+    wheels = (libexec/"wheels").children.select { |f| f.extname == ".whl" }
+    odie "no wheels were staged" if wheels.empty?
+    system python, "-m", "pip", "--python=#{libexec}/bin/python", "install",
+           "--no-deps", "--ignore-installed", "--no-index", *wheels
+    rm_r libexec/"wheels"
   end
 
   def caveats
@@ -277,11 +296,23 @@ class Txt2srt < Formula
     assert_match "建物", (testpath/"out.srt").read
     assert_match "建物", (testpath/"out.srt").read
 
-    # Metal is reachable, which is the part most likely to break on upgrade.
+    # Decoding really goes through the ffmpeg binary in this build, since PyAV is
+    # deliberately not shipped here, so decode something rather than trust it.
+    system formula_opt_bin("ffmpeg")/"ffmpeg", "-nostdin", "-v", "error", "-f", "lavfi",
+           "-i", "sine=frequency=440:duration=2", "-ar", "48000", testpath/"tone.wav"
+    system libexec/"bin/python", "-c", <<~PYTHON
+      from txt2srt.audio import load, SAMPLE_RATE
+      a = load("#{testpath}/tone.wav")
+      assert abs(len(a) / SAMPLE_RATE - 2.0) < 0.05, len(a)
+    PYTHON
+
+    # Metal is reachable, and the whisper backend's alignment entry point is
+    # importable. Both are what an upgrade is most likely to break.
     system libexec/"bin/python", "-c", <<~PYTHON
       import mlx.core as mx
       from mlx_whisper.timing import find_alignment
       assert mx.sum(mx.ones((4, 4))).item() == 16.0
+      assert find_alignment
     PYTHON
   end
 end
