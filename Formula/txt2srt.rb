@@ -7,7 +7,7 @@ class Txt2srt < Formula
   # flagged as redundant. The tag is written out rather than interpolated as
   # "v#{version}", since style autocorrect sorts `url` above `version`, at which
   # point the interpolation resolves to a bare "v" and the clone fails.
-  url "https://github.com/prog893/txt2srt.git", tag: "v0.1.0"
+  url "https://github.com/prog893/txt2srt.git", tag: "v0.2.0"
   license "MIT"
 
   # A git URL with a tag rather than a release tarball, matching the rest of this
@@ -258,14 +258,12 @@ class Txt2srt < Formula
       Whisper weights download on first use (~1.6GB for the default) into
       ~/.cache/huggingface. Nothing is bundled with this formula.
 
-      The `mms` backend needs torch and is not installed here; it is available
-      from a source checkout with `uv sync --extra mms`. Its default model is
-      CC BY-NC 4.0.
+      The `vad` backend needs no weights at all and runs offline.
     EOS
   end
 
   test do
-    assert_match "0.1.0", shell_output("#{bin}/txt2srt --version")
+    assert_match version.to_s, shell_output("#{bin}/txt2srt --version")
     assert_match "forced alignment", shell_output("#{bin}/txt2srt --help").downcase
 
     # A missing transcript must fail before anything is downloaded.
