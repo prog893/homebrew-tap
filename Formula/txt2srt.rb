@@ -7,7 +7,7 @@ class Txt2srt < Formula
   # flagged as redundant. The tag is written out rather than interpolated as
   # "v#{version}", since style autocorrect sorts `url` above `version`, at which
   # point the interpolation resolves to a bare "v" and the clone fails.
-  url "https://github.com/prog893/txt2srt.git", tag: "v0.4.1"
+  url "https://github.com/prog893/txt2srt.git", tag: "v0.4.2"
   license "MIT"
 
   # A git URL with a tag rather than a release tarball, matching the rest of this
@@ -272,6 +272,7 @@ class Txt2srt < Formula
     (testpath/"b.txt").write("B:\nhello\n")
     assert_match "both inputs look like transcripts",
                  shell_output("#{bin}/txt2srt a.txt b.txt 2>&1", 2)
+    assert_match "usage: txt2srt", shell_output("#{bin}/txt2srt 2>&1", 2)
 
     # The whole tool without the model: parse a transcript, attach synthetic
     # times, cut cues, write an SRT. This is the path every backend shares, and
