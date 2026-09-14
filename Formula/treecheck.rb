@@ -6,7 +6,7 @@ class Treecheck < Formula
   # "v#{version}", since style autocorrect sorts `url` above `version`, at which
   # point the interpolation resolves to a bare "v" and the clone fails with
   # "Remote branch v not found in upstream origin".
-  url "https://github.com/prog893/treecheck.git", tag: "v1.2.0"
+  url "https://github.com/prog893/treecheck.git", tag: "v1.3.0"
   license "MIT"
 
   head "https://github.com/prog893/treecheck.git", branch: "main"
@@ -32,7 +32,13 @@ class Treecheck < Formula
     # overwrite an existing file, and corrupting this one in place is the point.
     File.write(testpath/"good.txt", "changed")
     output = shell_output("#{bin}/treecheck #{testpath}", 1)
-    assert_match "hash mismatch", output
+
+    # Assert the verdict line, its detail and the counter separately. Each
+    # covers a different way the report has silently gone wrong before: the
+    # token is the outcome, the recorded digest proves the sidecar was read
+    # back rather than assumed, and the counter is what a caller scripts on.
+    assert_match "MISMATCH", output
+    assert_match "recorded", output
     assert_match "Mismatched:      1", output
   end
 end
