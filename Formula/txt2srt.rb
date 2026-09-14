@@ -11,9 +11,8 @@ class Txt2srt < Formula
   license "MIT"
 
   # A git URL with a tag rather than a release tarball, matching the rest of this
-  # tap. It also works while the source repo is private, because Homebrew shells
-  # out to git and picks up the user's credentials; a `.tar.gz` from
-  # codeload.github.com would 404 without a token.
+  # tap. Homebrew shells out to git for it, which is also what let this formula
+  # work while the source repo was still private.
   head "https://github.com/prog893/txt2srt.git", branch: "main"
 
   # The default backend is mlx-whisper, so Metal only. macOS 14 is mlx-metal's
