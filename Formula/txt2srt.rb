@@ -7,7 +7,7 @@ class Txt2srt < Formula
   # flagged as redundant. The tag is written out rather than interpolated as
   # "v#{version}", since style autocorrect sorts `url` above `version`, at which
   # point the interpolation resolves to a bare "v" and the clone fails.
-  url "https://github.com/prog893/txt2srt.git", tag: "v0.5.0"
+  url "https://github.com/prog893/txt2srt.git", tag: "v0.5.1"
   license "MIT"
 
   # A git URL with a tag rather than a release tarball, matching the rest of this
