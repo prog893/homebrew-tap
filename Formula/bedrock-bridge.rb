@@ -4,9 +4,9 @@ class BedrockBridge < Formula
   desc "Local proxy: Anthropic Messages API to Amazon Bedrock Converse API"
   homepage "https://github.com/prog893/bedrock-bridge"
   url "https://github.com/prog893/bedrock-bridge.git",
-      tag:      "v0.3.1",
-      revision: "d7f3c1a4fb3fd067c56f9069c962c6c7131978c8"
-  version "0.3.1"
+      tag:      "v0.3.2",
+      revision: "d8f4f83c2a19c8769542f4519d26772a417b303a"
+  version "0.3.2"
   license "MIT"
 
   depends_on "python@3.13"
